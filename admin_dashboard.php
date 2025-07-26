@@ -82,6 +82,12 @@ function get_products() {
     return json_decode($json_data, true);
 }
 
+function save_products($products) {
+    $products_file_path = __DIR__ . '/products.json';
+    $json_data = json_encode($products, JSON_PRETTY_PRINT);
+    file_put_contents($products_file_path, $json_data);
+}
+
 // Handle form submissions for categories
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_category'])) {
@@ -144,13 +150,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'price' => (float)$_POST['price'],
             'image' => $image_path,
             'isFeatured' => isset($_POST['isFeatured']) && $_POST['isFeatured'] === 'true',
+            'stock' => $_POST['stock_status'] ?? 'in_stock',
             'durations' => []
         ];
 
         if (isset($_POST['discount_toggle']) && $_POST['discount_toggle'] === 'on') {
             $new_product['discount'] = [
                 'type' => $_POST['discount_type'],
-                'value' => (float)$_POST['discount_value']
+                'value' => (float)$_POST['discount_value'],
+                'scope' => $_POST['discount_scope'] ?? 'product'
             ];
         }
 
@@ -471,11 +479,27 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                         </div>
 
                         <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="stock-status">Stock Status</label>
+                            <select name="stock_status" id="stock-status" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                <option value="in_stock">In Stock</option>
+                                <option value="out_of_stock">Out of Stock</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
                             <label for="discount-toggle">Apply Discount?</label>
                             <input type="checkbox" name="discount_toggle" id="discount-toggle">
                         </div>
 
                         <div id="discount-fields" style="display: none;">
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="discount-scope">Discount Scope</label>
+                                <select name="discount_scope" id="discount-scope" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                    <option value="product">This Product Only</option>
+                                    <option value="category">All Products in Category</option>
+                                    <option value="global">All Products (Global)</option>
+                                </select>
+                            </div>
                             <div class="form-group" style="margin-bottom: 1rem;">
                                 <label for="discount-type">Discount Type</label>
                                 <select name="discount_type" id="discount-type" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
@@ -485,7 +509,7 @@ $current_total_pending_all_time = getCurrentTotalPendingOrders($all_site_orders_
                             </div>
                             <div class="form-group" style="margin-bottom: 1rem;">
                                 <label for="discount-value">Discount Value</label>
-                                <input type="number" step="0.01" name="discount_value" id="discount-value" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                                <input type="number" step="0.01" name="discount_value" id="discount-value" class="form-control" style="width: 100%; padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color);" placeholder="Enter discount value">
                             </div>
                         </div>
 
